@@ -25,14 +25,14 @@ charging faults, scored by a cheat-resistant 0–100 grader (root cause 60 / par
 The site was drafted 2026-07-17 from rlenv state that has partially moved on. Items marked
 STALE must be synced with `rlenv/results/results.md` before the site is promoted anywhere.
 
-- **Benchmark table (fable-5 98.2 / sonnet-5 82.4 / grok-4 78.9 / gpt-5.5 71.0, "9 episodes"):**
-  the 2026-07-12 k=3 run (4 models × 3 scenarios × 3 epochs, full-resolution grading).
-  **STALE** — it predates rlenv's parser fixes round 3, the series-consistency physics
-  recalibration, and the final published table (2026-07-13, 9 models × 5 scenarios × 5
-  epochs: fable 86.0 / gpt 82.3 / grok 74.9 / sonnet 74.5 / gemini-flash 59.7 / haiku 39.9 /
-  ministral-3b 23.0 / qwen-7b 20.9 / llama-8b 7.2; separation 78.8). The page hedges with
-  "Preliminary; final table ships with the writeup," which is why this was acceptable for a
-  draft. The per-row annotations ("red herring −16" etc.) are illustrative, not computed.
+- **Benchmark table:** **SYNCED 2026-07-17** to the final published table (2026-07-13, 9
+  models × 5 scenarios × 5 epochs, 25 episodes/model) from the now-public repo
+  https://github.com/Jaiparmar940/rlenv. Page shows the top 7 of 9 rows (fable 86.0 /
+  gpt 82.3 / grok 74.9 / sonnet 74.5 / gemini-3.5-flash 59.7 / haiku 39.9 / ministral-3b
+  23.0; omitted: qwen-7b 20.9, llama-8b 7.2 — caption says "Showing 7 of 9 models").
+  Per-row annotations are the real root-ok counts from the repo README ("root cause N/25").
+  Score bars fill with scroll progress across the whole sticky section (0 → score% at the
+  end of the animation).
 - **"19-pt uncoached gap" / coaching-dependence failure mode:** from the original smoke A/B
   (haiku coached 57.4 vs uncoached 38.3). **STALE** — the closeout re-measurement under the
   current prompt pair is **13.6 points** (61.5 vs 47.9). Direction and story unchanged.
@@ -40,13 +40,12 @@ STALE must be synced with `rlenv/results/results.md` before the site is promoted
   physics bugs that passed the automated suite: load-sag inversion; a downstream node reading
   above an upstream one; a red-herring battery drifting into genuinely-weak territory; a
   ground-fault drop too small to characterize. This is the core product story.
-- **Hero terminal transcript (12.58 V rest / 11.44 V cranking / 2.77 V ground drop, scenario
-  `medium_corroded_ground`, "seed 41"):** illustrative episode consistent with the scenario
-  spec **before** the 2026-07-12 series-consistency recalibration. Under current physics the
-  cranking battery voltage is **~10.41 V** (still passes the 9.6 V load test; ground drop
-  ~2.75 V unchanged). If updating, keep the story beats: battery looks fine at rest, holds
-  under load, big battery_negative→engine_block drop under cranking is the tell. The seed is
-  decorative. "score 100 / 100" is the genuine expert-path score.
+- **Hero terminal transcript (12.58 V rest / 10.41 V cranking / 2.75 V ground drop, scenario
+  `medium_corroded_ground`, "seed 41"):** **SYNCED 2026-07-17** to post-recalibration
+  physics. Story beats preserved: battery looks fine at rest, holds under load (passes the
+  9.6 V load test), big battery_negative→engine_block drop under cranking is the tell. The
+  seed is decorative. "score 100 / 100" is the genuine expert-path score. The same numbers
+  appear in the hero canvas telemetry vignette (`sceneScope`) — keep the two in sync.
 - **Failure modes list (supply-referenced blindness; framing the innocent part;
   charging-system confusion; coaching dependence):** first two are Jaivir's banked
   observations from human play; charging-system confusion matches the framed-alternator trap
@@ -58,16 +57,21 @@ STALE must be synced with `rlenv/results/results.md` before the site is promoted
 
 - **Brand "Groundtruth"** — placeholder name (nod to ground faults + eval ground truth).
   Swap points: `<title>`, nav logo, footer logo, copyright line, and this file.
-- `https://github.com/groundtruth/no-start-env` (quickstart clone URL) and the nav GitHub
-  button (points at github.com root) — update when rlenv's public repo exists.
+- ~~GitHub links~~ — RESOLVED 2026-07-17: nav button, footer link, and quickstart clone URL
+  all point at the public repo https://github.com/Jaiparmar940/rlenv.
 - `founders@groundtruth.dev` — domain not registered.
 
 ## How the page is built (for editing)
 
 Everything is in `index.html`:
 
-- **Hero art** is generated at load by `paintHero()` — seeded PRNG (seed 41) drawing
-  crystal-fan ray clusters on a `<canvas>`; deterministic per viewport size, no assets.
+- **Hero art** is an animated `<canvas>`: `paintField()` prerenders the seeded (seed 41)
+  crystal-fan field to an offscreen canvas once per resize; `drawHero(t)` composites it with
+  slow drift under three cycling physical-AI vignettes (`sceneScope` telemetry / `sceneArm`
+  kinematics / `sceneCloud` lidar car), 9 s per scene with 1.5 s crossfades, scene name
+  shown in the `#scene-label` live tag. Animation only runs while the hero is on screen;
+  `prefers-reduced-motion` gets one static telemetry frame. On scroll the hero headline
+  parallaxes up/fades and the card scales down slightly (handoff into the dark region).
 - **Scroll motion** is one rAF loop (`frame()`): `stickyProgress()` maps each tall section
   (`.showcase` 240vh, `.term-section` 200vh) to 0–1; panels/wireframes interpolate
   rotateY/rotateX/translate via `lerp`, benchmark bars fill from progress. Tilt constants
