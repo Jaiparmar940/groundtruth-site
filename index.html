@@ -496,6 +496,15 @@
   .final-cta h2 { font-size: clamp(34px, 5vw, 60px); }
   .final-cta p { margin: 22px auto 0; max-width: 52ch; font-size: 16.5px; line-height: 1.6; color: var(--text-dim); }
   .final-cta .cta-row { margin-top: 42px; display: flex; gap: 12px; justify-content: center; }
+  /* ================= founder ================= */
+  .founder { border-top: 1px solid var(--line); padding: 88px 0; }
+  .founder-grid { display: flex; align-items: center; gap: 48px; }
+  .founder-photo { width: 148px; height: 148px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); flex-shrink: 0; }
+  .founder-text { max-width: 56ch; font-size: 16.5px; line-height: 1.7; color: var(--text-dim); }
+  .founder-links { margin-top: 18px; display: flex; gap: 22px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .founder-links a { color: var(--text-dim); border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+  .founder-links a:hover { color: var(--text); }
+
   footer { border-top: 1px solid var(--line); padding: 56px 0 40px; }
   .foot-grid { display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
   .foot-brand p { margin-top: 14px; font-size: 13.5px; color: var(--text-faint); max-width: 34ch; line-height: 1.6; }
@@ -518,6 +527,7 @@
   }
   @media (max-width: 640px) {
     .wrap { padding: 0 20px; }
+    .founder-grid { flex-direction: column; align-items: flex-start; gap: 28px; }
     /* nav: keep buttons on one line */
     .nav-inner { height: 60px; gap: 16px; }
     .nav-cta { gap: 8px; }
@@ -674,7 +684,7 @@
       </div>
       <div class="bench-caption" id="bench-caption">
         <h3>Where frontier models fail physical diagnosis.</h3>
-        <p>no-start-env v0.1 — 5 fault scenarios × 5 epochs, fix-the-car grading. <em>Showing 7 of 9 models; full table in the repo.</em></p>
+        <p>no-start-env v0.1 — 5 fault scenarios × 5 epochs, fix-the-car grading. <em>Showing 7 of 9 models; <a href="https://github.com/Jaiparmar940/rlenv/blob/main/results/scale_curve.md" target="_blank" rel="noopener" style="text-decoration:underline; text-underline-offset:2px;">full table in the repo</a>.</em></p>
       </div>
     </div>
   </div>
@@ -799,7 +809,7 @@
         <div class="split-panel" id="split-panel">
           <div class="mono-head">FAILURE-MODE TAXONOMY · v0.1</div>
           <div class="big">Supply-referenced blindness.<br>Framing the innocent part.<br>Coaching dependence.</div>
-          <div class="foot"><span>19-pt uncoached gap</span><span>4 physics bugs human-caught</span></div>
+          <div class="foot"><span>13.6-pt uncoached gap</span><span>4 physics bugs human-caught</span></div>
         </div>
       </div>
     </div>
@@ -837,8 +847,29 @@
         touch real systems, we'd like to talk.
       </p>
       <div class="cta-row reveal">
-        <a class="btn btn-green" href="mailto:founders@secondnature.dev">Get in touch</a>
+        <a class="btn btn-green" href="mailto:[VERIFIED_EMAIL]">Get in touch</a>
         <a class="btn btn-ghost-dark" href="#quickstart">Run the benchmark</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ founder ============ -->
+  <section class="founder" id="founder">
+    <div class="wrap founder-grid">
+      <!-- TODO: drop the real founder photo at assets/founder.jpg (slot hides itself if the file is missing) -->
+      <img class="founder-photo" src="assets/founder.jpg" alt="Jaivir Parmar" onerror="this.style.display='none'">
+      <div>
+        <div class="kicker reveal">Who's behind this</div>
+        <p class="founder-text reveal">
+          Built by Jaivir Parmar — hardware and software: 5-DOF robotic arm, ECU-level
+          automotive diagnosis and repair, fabrication. Every scenario in these environments
+          is played and signed off by hand before it ships.
+        </p>
+        <div class="founder-links reveal">
+          <a href="https://github.com/Jaiparmar940" target="_blank" rel="noopener">GitHub</a>
+          <a href="[X_URL]">X</a>
+          <a href="[LINKEDIN_URL]">LinkedIn</a>
+        </div>
       </div>
     </div>
   </section>
@@ -862,14 +893,13 @@
           </div>
           <div class="foot-col">
             <h4>Resources</h4>
-            <a href="#">Benchmark writeup</a>
-            <a href="#">Domain truth docs</a>
+            <a href="https://github.com/Jaiparmar940/rlenv/blob/main/WRITEUP.md" target="_blank" rel="noopener">Benchmark writeup</a>
+            <a href="https://github.com/Jaiparmar940/rlenv/blob/main/DOMAIN_TRUTH.md" target="_blank" rel="noopener">Domain truth docs</a>
             <a href="https://github.com/Jaiparmar940/rlenv" target="_blank" rel="noopener">GitHub</a>
           </div>
           <div class="foot-col">
             <h4>Company</h4>
             <a href="#contact">Contact</a>
-            <a href="#">About</a>
           </div>
         </div>
       </div>
