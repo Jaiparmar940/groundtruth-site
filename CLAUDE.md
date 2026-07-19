@@ -111,7 +111,12 @@ Everything is in `index.html`:
 ## Dev / deploy
 
 - Local: open `index.html` directly, or `python3 -m http.server 8712` and browse.
-- Deploy: GitHub Pages serves `main` at the repo's Pages URL. Keep the page self-contained —
+- Deploy: GitHub Pages serves `main`. Custom domain **snlabs.dev** (GoDaddy, CNAME file
+  added 2026-07-19): the github.io URL now 301s to it. As of 2026-07-19 12:30Z the GoDaddy
+  DNS still pointed at GoDaddy's parking site (A 76.223.105.230/13.248.243.5) — until the
+  apex A records are changed to GitHub Pages (185.199.108.153/.109/.110/.111) and Enforce
+  HTTPS is enabled, the live site shows GoDaddy's placeholder, NOT the deployed page.
+  Keep the page self-contained —
   no external fonts/scripts/images — so it works from any path (Pages subpath included; all
   internal links are `#anchors`).
 - No analytics, no forms, no cookies. Keep it that way unless Jaivir decides otherwise.
