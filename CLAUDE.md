@@ -64,8 +64,9 @@ STALE must be synced with `rlenv/results/results.md` before the site is promoted
   (dark rounded square) and footer (inverted, amber square).
 - ~~GitHub links~~ — RESOLVED 2026-07-17: nav button, footer link, and quickstart clone URL
   all point at the public repo https://github.com/Jaiparmar940/rlenv.
-- ~~`founders@secondnature.dev`~~ — RESOLVED 2026-07-19: domain was never registered; the
-  contact mailto now points at `jay.parmar@duke.edu` (Jaivir's confirmed address).
+- ~~`founders@secondnature.dev`~~ — RESOLVED 2026-07-19: that domain was never registered.
+  Contact mailto is now `founders@snlabs.dev`, forwarded to jaiparmar940@gmail.com via
+  ImprovMX (MX/SPF records live in GoDaddy DNS; briefly used jay.parmar@duke.edu in between).
 
 ## How the page is built (for editing)
 
