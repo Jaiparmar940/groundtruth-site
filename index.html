@@ -516,6 +516,33 @@
     .bench-row .eps, .bench-head .h-eps { display: none; }
     section { padding: 84px 0; }
   }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 20px; }
+    /* nav: keep buttons on one line */
+    .nav-inner { height: 60px; gap: 16px; }
+    .nav-cta { gap: 8px; }
+    .btn { white-space: nowrap; padding: 9px 14px; font-size: 13px; }
+    /* benchmark: tighter rows so all 7 fit the panel */
+    .bench-stage { height: 500px; }
+    .bench-panel { padding: 14px; }
+    .bench-tabs .tab:nth-child(2), .bench-tabs .tab:nth-child(3) { display: none; }
+    .bench-head { padding: 8px 2px 6px; }
+    .bench-row { padding: 6px 2px; gap: 10px; font-size: 12px; }
+    .bench-row .scorenum small { display: none; }
+    .bench-row .bar-track { height: 7px; }
+    .bench-caption { bottom: 3vh; }
+    .bench-caption p { padding: 0 16px; }
+    /* terminal: smaller stage + mono so wrapped lines fit and the settling
+       animation (translateY up to 60px) can't ride over the caption */
+    .term-stage { height: 430px; }
+    .terminal { inset: 4% 2%; }
+    .terminal-body { padding: 14px 16px; font-size: 11px; line-height: 1.8; }
+    .terminal-bar .title { font-size: 10.5px; }
+    .term-caption { margin-top: 24px; }
+    /* split panel */
+    .split-stage { height: 420px; }
+    .split-panel { padding: 24px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .scroll-cue .box { animation: none; }
     .reveal { transition: none; opacity: 1; transform: none; }
@@ -988,14 +1015,17 @@
       heroCue.style.opacity = 1 - clamp(sp / 0.1, 0, 1);
 
       // Benchmark stage: settle from a deep tilt to nearly flat.
+      // On phones, damp the 3D amplitude — full-size tilts overshoot the small
+      // stages and ride panels over the captions below them.
+      const mob = innerWidth < 640 ? 0.35 : 1;
       let p = stickyProgress(benchSection);
       let e = 1 - Math.pow(1 - p, 2);
       benchPanel.style.transform =
-        `rotateY(${lerp(-22, -6, e)}deg) rotateX(${lerp(10, 2, e)}deg) translateY(${lerp(70, -10, e)}px) translateZ(${lerp(-80, 0, e)}px)`;
+        `rotateY(${lerp(-22, -6, e) * mob}deg) rotateX(${lerp(10, 2, e) * mob}deg) translateY(${lerp(70, -10, e) * mob}px) translateZ(${lerp(-80, 0, e) * mob}px)`;
       benchF1.style.transform =
-        `rotateY(${lerp(-26, -9, e)}deg) rotateX(${lerp(12, 3, e)}deg) translateY(${lerp(100, 6, e)}px) translateZ(${lerp(-160, -40, e)}px)`;
+        `rotateY(${lerp(-26, -9, e) * mob}deg) rotateX(${lerp(12, 3, e) * mob}deg) translateY(${lerp(100, 6, e) * mob}px) translateZ(${lerp(-160, -40, e) * mob}px)`;
       benchF2.style.transform =
-        `rotateY(${lerp(-30, -12, e)}deg) rotateX(${lerp(14, 4, e)}deg) translateY(${lerp(140, 24, e)}px) translateZ(${lerp(-240, -90, e)}px)`;
+        `rotateY(${lerp(-30, -12, e) * mob}deg) rotateX(${lerp(14, 4, e) * mob}deg) translateY(${lerp(140, 24, e) * mob}px) translateZ(${lerp(-240, -90, e) * mob}px)`;
       const bp = p; // bars track the full sticky animation: empty at start, score% at end
       benchBars.forEach((row) => {
         row.querySelector('.bar').style.width = (parseFloat(row.dataset.score) * bp) + '%';
@@ -1007,18 +1037,18 @@
       p = stickyProgress(termSection);
       e = 1 - Math.pow(1 - p, 2);
       termPanel.style.transform =
-        `rotateY(${lerp(18, 5, e)}deg) rotateX(${lerp(-8, -2, e)}deg) translateY(${lerp(60, -6, e)}px)`;
+        `rotateY(${lerp(18, 5, e) * mob}deg) rotateX(${lerp(-8, -2, e) * mob}deg) translateY(${lerp(60, -6, e) * mob}px)`;
       termF1.style.transform =
-        `rotateY(${lerp(22, 8, e)}deg) rotateX(${lerp(-10, -3, e)}deg) translateY(${lerp(90, 8, e)}px) translateZ(-60px)`;
+        `rotateY(${lerp(22, 8, e) * mob}deg) rotateX(${lerp(-10, -3, e) * mob}deg) translateY(${lerp(90, 8, e) * mob}px) translateZ(${-60 * mob}px)`;
       termF2.style.transform =
-        `rotateY(${lerp(26, 11, e)}deg) rotateX(${lerp(-12, -4, e)}deg) translateY(${lerp(120, 22, e)}px) translateZ(-130px)`;
+        `rotateY(${lerp(26, 11, e) * mob}deg) rotateX(${lerp(-12, -4, e) * mob}deg) translateY(${lerp(120, 22, e) * mob}px) translateZ(${-130 * mob}px)`;
 
       // Split stage: gentle parallax tilt as it crosses the viewport.
       p = viewProgress(splitStage);
       splitPanel.style.transform =
-        `rotateY(${lerp(-14, -4, p)}deg) rotateX(${lerp(6, 1, p)}deg) translateY(${lerp(40, -20, p)}px)`;
-      splitF1.style.transform = `rotateY(${lerp(-18, -7, p)}deg) translateY(${lerp(60, -6, p)}px) translateZ(-50px)`;
-      splitF2.style.transform = `rotateY(${lerp(-22, -10, p)}deg) translateY(${lerp(80, 6, p)}px) translateZ(-110px)`;
+        `rotateY(${lerp(-14, -4, p) * mob}deg) rotateX(${lerp(6, 1, p) * mob}deg) translateY(${lerp(40, -20, p) * mob}px)`;
+      splitF1.style.transform = `rotateY(${lerp(-18, -7, p) * mob}deg) translateY(${lerp(60, -6, p) * mob}px) translateZ(${-50 * mob}px)`;
+      splitF2.style.transform = `rotateY(${lerp(-22, -10, p) * mob}deg) translateY(${lerp(80, 6, p) * mob}px) translateZ(${-110 * mob}px)`;
     } else {
       benchBars.forEach((row) => {
         row.querySelector('.bar').style.width = row.dataset.score + '%';
