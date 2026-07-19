@@ -80,7 +80,7 @@ Everything is in `index.html`:
   twinkle, ~6% amber accents, over a faint slate radial glow. Deliberately calm — no
   charts, labels, or data imagery. Animation only runs while the hero is on screen;
   `prefers-reduced-motion` gets one static telemetry frame (and unpins the hero: shell
-  height auto, copy2 shown statically at the bottom). The hero is a pinned 200vh section
+  height auto, copy2 shown statically at the bottom). The hero is a pinned 250vh section
   (`.hero-shell` > sticky `.hero-pin` > full-viewport card): as the user scrolls, the
   headline floats up/out, then `.hero-copy2` (the intro paragraph, which lives INSIDE the
   card — there is no light band between hero and dark region) floats into center, then
@@ -93,13 +93,14 @@ Everything is in `index.html`:
 - **Smooth scroll + snap assist** (added 2026-07-19; verified scale.com ships Lenis with
   lerp≈0.14 and this hand-rolls the same mechanic): wheel events are preventDefault'd into
   a virtual `smooth.target`; the top of `frame()` eases the real scroll toward it with an
-  exponential lerp (τ≈110ms). On wheel-idle (200ms) with `#benchmark` or `#environments`
-  entered ≥25% (predicted landing position, `finalTop`), the target moves to the section
-  top — same glide carries you in, forward-only (`scrollDir`). In-page `#anchor` clicks
+  exponential lerp (τ≈110ms). On wheel-idle (200ms), a showcase snaps only after its
+  predicted landing position (`finalTop`) enters far enough: 55% for `#environments`, which
+  protects the full-viewport thesis section, and 25% for `#benchmark`. The same glide carries
+  you to the section top, forward-only (`scrollDir`). In-page `#anchor` clicks
   ride the glide too. Touch/keyboard/scrollbar stay native: a scroll event that deviates
   >1.5px from `smooth.current` re-syncs and deactivates. All skipped under reduced motion.
 - **Terminal typing** (added 2026-07-19): `typeTerminal()` blanks the `.t-line` text nodes
-  and retypes them char-by-char (agent lines 14 ms/char, env output 7 ms/char) with a
+  and retypes them char-by-char (agent lines 4 ms/char, env output 2 ms/char) with a
   blinking `.t-caret`, triggered once by an IntersectionObserver at threshold 0.7 on
   `#terminal`. Reduced motion shows all lines instantly. If the transcript copy changes,
   no JS updates are needed — it types whatever is in the markup.

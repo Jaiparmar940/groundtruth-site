@@ -99,7 +99,7 @@
   .btn-ghost-dark:hover { border-color: rgba(255, 255, 255, 0.6); }
 
   /* ================= hero: pinned card with two text slides ================= */
-  .hero-shell { height: 200vh; position: relative; }
+  .hero-shell { height: 250vh; position: relative; }
   .hero-pin {
     position: sticky;
     top: 0;
@@ -208,7 +208,10 @@
   }
   .statement {
     text-align: center;
-    padding: 120px 0 20px;
+    min-height: 100vh;
+    padding: 80px 0;
+    display: grid;
+    place-items: center;
   }
   .statement h2 { max-width: 26ch; margin: 0 auto; }
   .statement p {
@@ -876,8 +879,8 @@
         </p>
         <div class="founder-links reveal">
           <a href="https://github.com/Jaiparmar940" target="_blank" rel="noopener">GitHub</a>
-          <a href="[X_URL]">X</a>
-          <a href="[LINKEDIN_URL]">LinkedIn</a>
+          <a href="https://x.com/ja1v1r" target="_blank" rel="noopener">X</a>
+          <a href="https://www.linkedin.com/in/jaivir-parmar/" target="_blank" rel="noopener">LinkedIn</a>
         </div>
       </div>
     </div>
@@ -1014,10 +1017,10 @@
       const { line, nodes, isAgent } = seq[li++];
       line.classList.add('on');
       line.appendChild(caret);
-      const speed = isAgent ? 14 : 7; // agent "types"; the env prints fast
+      const speed = isAgent ? 4 : 2; // brisk agent typing; near-instant env output
       let ni = 0, ci = 0;
       (function tick() {
-        if (ni >= nodes.length) { setTimeout(nextLine, isAgent ? 160 : 340); return; }
+        if (ni >= nodes.length) { setTimeout(nextLine, isAgent ? 45 : 70); return; }
         const t = nodes[ni];
         ci += 1;
         t.node.nodeValue = t.text.slice(0, ci);
@@ -1029,7 +1032,7 @@
   const termIO = new IntersectionObserver((es) => {
     if (!es[0].isIntersecting) return;
     termIO.disconnect();
-    setTimeout(typeTerminal, 250);
+    setTimeout(typeTerminal, 80);
   }, { threshold: 0.7 });
   termIO.observe(document.getElementById('terminal'));
 
@@ -1051,7 +1054,10 @@
   // entered, the target moves to the section top and the same glide carries you
   // in (forward-only). Touch, keyboard, and scrollbar scrolls stay native — an
   // external scroll just re-syncs the target. Disabled under reduced motion.
-  const snapTargets = [document.getElementById('environments'), document.getElementById('benchmark')];
+  const snapTargets = [
+    { el: document.getElementById('environments'), threshold: 0.55 },
+    { el: document.getElementById('benchmark'), threshold: 0.25 }
+  ];
   const smooth = { target: scrollY, current: scrollY, active: false };
   const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
   let snapTimer = 0;
@@ -1062,11 +1068,11 @@
   }
   function maybeSnap() {
     if (scrollDir < 0) return;
-    for (const el of snapTargets) {
+    for (const { el, threshold } of snapTargets) {
       const top = el.getBoundingClientRect().top;
       const finalTop = smooth.active ? top - (smooth.target - scrollY) : top;
       const entered = (innerHeight - finalTop) / innerHeight;
-      if (finalTop > 2 && entered >= 0.25) { glideTo(scrollY + top); return; }
+      if (finalTop > 2 && entered >= threshold) { glideTo(scrollY + top); return; }
     }
   }
   function queueSnap(delay) { clearTimeout(snapTimer); snapTimer = setTimeout(maybeSnap, delay); }
@@ -1152,9 +1158,9 @@
       const aOut = clamp(sp / 0.42, 0, 1);
       heroH1.style.transform = `translateY(${-aOut * 150}px) scale(${1 - aOut * 0.06})`;
       heroH1.style.opacity = 1 - aOut;
-      const aIn = clamp((sp - 0.34) / 0.38, 0, 1);
+      const aIn = clamp((sp - 0.30) / 0.28, 0, 1);
       const eIn = 1 - Math.pow(1 - aIn, 3);
-      const drift = clamp((sp - 0.84) / 0.16, 0, 1);
+      const drift = clamp((sp - 0.90) / 0.10, 0, 1);
       heroCopy2.style.opacity = Math.min(1, aIn * 1.5) * (1 - drift * 0.25);
       heroCopy2.style.transform = `translateY(${lerp(260, 0, eIn) - drift * 56}px)`;
       heroCue.style.opacity = 1 - clamp(sp / 0.1, 0, 1);
