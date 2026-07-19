@@ -85,9 +85,18 @@ Everything is in `index.html`:
   drifts out as the card unpins straight into `.dark` (veil bottom blends to --bg so the
   seam is invisible).
 - **Scroll motion** is one rAF loop (`frame()`): `stickyProgress()` maps each tall section
-  (`.showcase` 240vh, `.term-section` 200vh) to 0–1; panels/wireframes interpolate
+  (`.showcase` 185vh, `.term-section` 200vh) to 0–1; panels/wireframes interpolate
   rotateY/rotateX/translate via `lerp`, benchmark bars fill from progress. Tilt constants
   live in `frame()`. `prefers-reduced-motion` bypasses all of it.
+- **Snap assist** (added 2026-07-19, Scale-style): when scrolling stops with `#benchmark`
+  or `#environments` entered ≥35% of the viewport (top still below 0), an easeInOutCubic
+  rAF glide (`snapTo`) aligns the section top to the viewport. Forward-only (`scrollDir`),
+  cancelled by wheel/touchstart/keydown, skipped under reduced motion.
+- **Terminal typing** (added 2026-07-19): `typeTerminal()` blanks the `.t-line` text nodes
+  and retypes them char-by-char (agent lines 14 ms/char, env output 7 ms/char) with a
+  blinking `.t-caret`, triggered once by an IntersectionObserver at threshold 0.7 on
+  `#terminal`. Reduced motion shows all lines instantly. If the transcript copy changes,
+  no JS updates are needed — it types whatever is in the markup.
 - Stage scaffolding: `.stage` (perspective) > `.wireframe` frames + `.contours` SVG +
   `.bin` labels + content panel. Reuse these primitives for new sections.
 - Known local-dev quirk: the Claude Code browser pane fails to capture screenshots at

@@ -208,7 +208,7 @@
   }
   .statement {
     text-align: center;
-    padding: 130px 0 36px;
+    padding: 120px 0 20px;
   }
   .statement h2 { max-width: 26ch; margin: 0 auto; }
   .statement p {
@@ -283,7 +283,7 @@
   .contours .tri { fill: rgba(255, 255, 255, 0.4); stroke: none; }
 
   /* ================= benchmark showcase ================= */
-  .showcase { height: 210vh; position: relative; }
+  .showcase { height: 185vh; position: relative; }
   .showcase-sticky {
     position: sticky;
     top: 0;
@@ -410,8 +410,18 @@
     font-size: 13px;
     line-height: 1.95;
   }
-  .t-line { opacity: 0; transform: translateY(4px); transition: opacity 0.4s ease, transform 0.4s ease; }
+  .t-line { opacity: 0; transform: translateY(4px); transition: opacity 0.25s ease, transform 0.25s ease; }
   .t-line.on { opacity: 1; transform: none; }
+  .t-caret {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    margin-left: 2px;
+    vertical-align: -2px;
+    background: #e2ded2;
+    animation: caret-blink 0.9s steps(1) infinite;
+  }
+  @keyframes caret-blink { 50% { opacity: 0; } }
   .t-agent { color: var(--accent); }
   .t-tool { color: #7fb4e8; }
   .t-out { color: var(--text-dim); }
@@ -518,7 +528,7 @@
     .nav-links { display: none; }
     .split, .qs-grid { grid-template-columns: 1fr; }
     .pillars { grid-template-columns: 1fr; }
-    .showcase { height: 200vh; }
+    .showcase { height: 180vh; }
     .bench-stage { height: 480px; }
     .bench-panel { inset: 4% 2%; padding: 18px; }
     .bench-row, .bench-head { grid-template-columns: 34px 1fr 1.1fr; }
@@ -556,6 +566,8 @@
   @media (prefers-reduced-motion: reduce) {
     .scroll-cue .box { animation: none; }
     .reveal { transition: none; opacity: 1; transform: none; }
+    .t-line { transition: none; opacity: 1; transform: none; }
+    .t-caret { display: none; }
     .hero-shell { height: auto; }
     .hero-pin { position: static; height: 100vh; }
     .hero-copy2 { opacity: 1; align-items: flex-end; padding-bottom: 9vh; }
@@ -981,23 +993,100 @@
   }, { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 
-  /* ---------- terminal lines ---------- */
-  const termLines = document.querySelectorAll('#terminal .t-line');
+  /* ---------- terminal: AI-style typing ---------- */
+  // Lines type out character by character (fast for tool output, slightly slower
+  // for agent commands), with a blinking caret that follows the text. Text nodes
+  // are blanked up front and restored progressively so the colored spans keep
+  // their markup. Plays once, only when the terminal is actually on screen.
+  const termLines = [...document.querySelectorAll('#terminal .t-line')];
+  const caret = document.createElement('span');
+  caret.className = 't-caret';
+  function typeTerminal() {
+    if (reduced) { termLines.forEach((l) => l.classList.add('on')); return; }
+    const seq = termLines.map((line) => {
+      const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      let n;
+      while ((n = walker.nextNode())) { nodes.push({ node: n, text: n.nodeValue }); }
+      nodes.forEach((t) => { t.node.nodeValue = ''; });
+      return { line, nodes, isAgent: !!line.querySelector('.t-agent') };
+    });
+    let li = 0;
+    (function nextLine() {
+      if (li >= seq.length) { caret.remove(); return; }
+      const { line, nodes, isAgent } = seq[li++];
+      line.classList.add('on');
+      line.appendChild(caret);
+      const speed = isAgent ? 14 : 7; // agent "types"; the env prints fast
+      let ni = 0, ci = 0;
+      (function tick() {
+        if (ni >= nodes.length) { setTimeout(nextLine, isAgent ? 160 : 340); return; }
+        const t = nodes[ni];
+        ci += 1;
+        t.node.nodeValue = t.text.slice(0, ci);
+        if (ci >= t.text.length) { ni += 1; ci = 0; }
+        setTimeout(tick, speed);
+      })();
+    })();
+  }
   const termIO = new IntersectionObserver((es) => {
     if (!es[0].isIntersecting) return;
     termIO.disconnect();
-    termLines.forEach((l, i) => setTimeout(() => l.classList.add('on'), 400 + i * 600));
-  }, { threshold: 0.3 });
+    setTimeout(typeTerminal, 250);
+  }, { threshold: 0.7 });
   termIO.observe(document.getElementById('terminal'));
 
   /* ---------- nav hide on scroll down ---------- */
   const nav = document.getElementById('nav');
-  let lastY = scrollY;
+  let lastY = scrollY, scrollDir = 1;
   addEventListener('scroll', () => {
     const y = scrollY;
     nav.classList.toggle('hidden', y > 400 && y > lastY);
+    if (y !== lastY) scrollDir = y > lastY ? 1 : -1;
     lastY = y;
   }, { passive: true });
+
+  /* ---------- scroll snap assist (Scale-style) ---------- */
+  // When the user stops scrolling with a pinned showcase partially entered
+  // (its top somewhere in the lower ~65% of the viewport), glide the rest of
+  // the way so the section starts cleanly at the top. Forward-only, cancels
+  // instantly on any user input, disabled under reduced motion.
+  const snapTargets = [document.getElementById('benchmark'), document.getElementById('environments')];
+  let snapping = false, snapRAF = 0, snapTimer = 0;
+  function cancelSnap() {
+    if (snapping) { cancelAnimationFrame(snapRAF); snapping = false; }
+  }
+  function snapTo(targetY) {
+    const from = scrollY, dist = targetY - from, t0 = performance.now();
+    if (Math.abs(dist) < 4) return;
+    const dur = clamp(Math.abs(dist) * 0.85, 350, 900);
+    snapping = true;
+    (function step(now) {
+      if (!snapping) return;
+      const k = clamp((now - t0) / dur, 0, 1);
+      const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      scrollTo(0, from + dist * e);
+      if (k < 1) snapRAF = requestAnimationFrame(step);
+      else snapping = false;
+    })(t0);
+  }
+  function maybeSnap() {
+    if (reduced || snapping || scrollDir < 0) return;
+    for (const el of snapTargets) {
+      const top = el.getBoundingClientRect().top;
+      const entered = (innerHeight - top) / innerHeight;
+      if (top > 2 && entered >= 0.35) { snapTo(scrollY + top); return; }
+    }
+  }
+  if (!reduced) {
+    addEventListener('scroll', () => {
+      if (snapping) return;
+      clearTimeout(snapTimer);
+      snapTimer = setTimeout(maybeSnap, 150);
+    }, { passive: true });
+    ['wheel', 'touchstart', 'keydown'].forEach((ev) =>
+      addEventListener(ev, cancelSnap, { passive: true }));
+  }
 
   /* ---------- scroll-driven 3D stages ---------- */
   const benchSection = document.getElementById('benchmark');
