@@ -363,6 +363,7 @@
   .bench-caption h3 { font-size: clamp(24px, 2.6vw, 34px); font-weight: 550; letter-spacing: -0.02em; }
   .bench-caption p { margin-top: 10px; color: var(--text-dim); font-size: 15px; }
   .bench-caption p em { font-style: normal; color: var(--text); }
+  .bench-caption .bench-footnote { margin-top: 6px; font-size: 12.5px; color: var(--text-faint); }
 
   /* ================= terminal showcase ================= */
   .term-section { height: 170vh; position: relative; }
@@ -748,6 +749,7 @@
       <div class="bench-caption" id="bench-caption">
         <h3>A physical-reasoning gap you can measure.</h3>
         <p>Our first benchmark uses 5 vehicle electrical scenarios × 5 epochs with outcome-based grading. <em>Showing 7 of 9 models; <a href="https://github.com/Jaiparmar940/rlenv/blob/main/results/scale_curve.md" target="_blank" rel="noopener" style="text-decoration:underline; text-underline-offset:2px;">full table in the repo</a>.</em></p>
+        <p class="bench-footnote">Per-cell scores at n=5 epochs carry wide uncertainty; tier-level patterns are the robust findings. Full methodology in the repo.</p>
       </div>
     </div>
   </div>
