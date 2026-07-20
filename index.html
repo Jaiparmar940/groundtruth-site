@@ -991,10 +991,11 @@
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 
   /* ---------- terminal: AI-style typing ---------- */
-  // Lines type out character by character (fast for tool output, slightly slower
-  // for agent commands), with a blinking caret that follows the text. Text nodes
-  // are blanked up front and restored progressively so the colored spans keep
-  // their markup. Plays once, only when the terminal is actually on screen.
+  // Agent lines type out character by character with a blinking caret; env
+  // output lines print all at once like a real terminal, with a tiny beat
+  // before and after the print. Text nodes are blanked up front and restored
+  // so the colored spans keep their markup. Plays once, only when the
+  // terminal is actually on screen.
   const termLines = [...document.querySelectorAll('#terminal .t-line')];
   const caret = document.createElement('span');
   caret.className = 't-caret';
@@ -1012,12 +1013,22 @@
     (function nextLine() {
       if (li >= seq.length) { caret.remove(); return; }
       const { line, nodes, isAgent } = seq[li++];
+      if (!isAgent) {
+        // env output: prints in one shot, tiny beat before and after
+        setTimeout(() => {
+          nodes.forEach((t) => { t.node.nodeValue = t.text; });
+          line.classList.add('on');
+          line.appendChild(caret);
+          setTimeout(nextLine, 90);
+        }, 60);
+        return;
+      }
       line.classList.add('on');
       line.appendChild(caret);
-      const speed = isAgent ? 4 : 2; // brisk agent typing; near-instant env output
+      const speed = 4; // brisk agent typing
       let ni = 0, ci = 0;
       (function tick() {
-        if (ni >= nodes.length) { setTimeout(nextLine, isAgent ? 45 : 70); return; }
+        if (ni >= nodes.length) { setTimeout(nextLine, 45); return; }
         const t = nodes[ni];
         ci += 1;
         t.node.nodeValue = t.text.slice(0, ci);
