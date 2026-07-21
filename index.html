@@ -135,7 +135,8 @@
     line-height: 1.08;
     font-weight: 550;
     letter-spacing: -0.03em;
-    max-width: 18ch;
+    max-width: 22ch;
+    text-wrap: balance;
     text-shadow: 0 2px 40px rgba(0, 0, 0, 0.45);
   }
   .scroll-cue {
@@ -209,7 +210,7 @@
     letter-spacing: -0.025em;
   }
   .statement {
-    height: 170vh;
+    height: 150vh;
     position: relative;
   }
   .statement-pin {
@@ -221,7 +222,25 @@
     display: grid;
     place-items: center;
   }
+  .statement-pin::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: radial-gradient(ellipse 43% 34% at 50% 50%, rgba(10, 10, 10, 0.76), rgba(10, 10, 10, 0.42) 52%, transparent 78%);
+    pointer-events: none;
+  }
+  .statement-art {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
   .statement-copy {
+    position: relative;
+    z-index: 2;
     text-align: center;
     opacity: 0;
     will-change: transform, opacity;
@@ -676,6 +695,7 @@
 
   <div class="statement" id="training-gap">
     <div class="statement-pin">
+      <canvas class="statement-art" id="statement-art" aria-hidden="true"></canvas>
       <div class="wrap statement-copy" id="statement-copy">
         <h2>The physical world is missing<br>from the training set.</h2>
         <p>
@@ -1043,6 +1063,70 @@
   sizeHero();
   addEventListener('resize', sizeHero);
 
+  /* ---------- training-gap art: a dataset field with a missing center ---------- */
+  const statementCanvas = document.getElementById('statement-art');
+  const sctx = statementCanvas.getContext('2d');
+  let SW = 0, SH = 0, SDPR = 1, trainingCells = [];
+  function buildTrainingCells() {
+    let seed = 113;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    trainingCells = Array.from({ length: 360 }, () => ({
+      x: rnd(), y: rnd(), z: 0.25 + rnd() * 0.75,
+      len: 3 + rnd() * 14, speed: 0.35 + rnd() * 0.8,
+      phase: rnd() * 6.28, amber: rnd() < 0.045
+    }));
+  }
+  function drawTrainingField(t, progress) {
+    if (!SW || !SH) return;
+    sctx.setTransform(SDPR, 0, 0, SDPR, 0, 0);
+    sctx.clearRect(0, 0, SW, SH);
+    const scene = 0.48 + clamp(progress / 0.45, 0, 1) * 0.52;
+    const drift = t / 150000;
+    for (const cell of trainingCells) {
+      const x = (cell.x + drift * cell.speed) % 1;
+      const y = (cell.y + drift * cell.speed * 0.28) % 1;
+      const ex = (x - 0.5) / 0.36;
+      const ey = (y - 0.5) / 0.29;
+      // Samples dissolve around the copy, making the missing region literal.
+      const outsideVoid = clamp((ex * ex + ey * ey - 0.48) / 0.72, 0, 1);
+      const edge = clamp(Math.min(x, 1 - x, y, 1 - y) * 12, 0, 1);
+      const pulse = 0.68 + Math.sin(t / 1800 + cell.phase) * 0.32;
+      const alpha = (0.035 + cell.z * 0.17) * outsideVoid * edge * pulse * scene;
+      sctx.fillStyle = cell.amber
+        ? `rgba(245,179,1,${alpha * 1.7})`
+        : `rgba(173,181,197,${alpha})`;
+      sctx.fillRect(x * SW, y * SH, cell.len * cell.z, Math.max(0.7, cell.z * 1.5));
+    }
+
+    // Slowly moving contour rings label the boundary of what the data omits.
+    sctx.save();
+    sctx.translate(SW * 0.5, SH * 0.5);
+    sctx.rotate(Math.sin(t / 9000) * 0.012);
+    sctx.setLineDash([2, 9]);
+    sctx.lineDashOffset = -t / 70;
+    sctx.lineWidth = 1;
+    sctx.strokeStyle = `rgba(173,181,197,${0.11 * scene})`;
+    sctx.beginPath();
+    sctx.ellipse(0, 0, SW * 0.36, SH * 0.29, 0, 0, Math.PI * 2);
+    sctx.stroke();
+    sctx.setLineDash([1, 13]);
+    sctx.lineDashOffset = t / 95;
+    sctx.strokeStyle = `rgba(245,179,1,${0.08 * scene})`;
+    sctx.beginPath();
+    sctx.ellipse(0, 0, SW * 0.405, SH * 0.325, 0, 0, Math.PI * 2);
+    sctx.stroke();
+    sctx.restore();
+  }
+  function sizeStatementArt() {
+    SDPR = Math.min(devicePixelRatio || 1, 2);
+    SW = statementCanvas.clientWidth; SH = statementCanvas.clientHeight;
+    statementCanvas.width = SW * SDPR; statementCanvas.height = SH * SDPR;
+    buildTrainingCells();
+    if (reduced) drawTrainingField(5200, 1);
+  }
+  sizeStatementArt();
+  addEventListener('resize', sizeStatementArt);
+
   /* ---------- reveal ---------- */
   const io = new IntersectionObserver((es) => {
     for (const e of es) if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); }
@@ -1156,7 +1240,6 @@
   const termSection = document.getElementById('environments');
   const benchSection = document.getElementById('benchmark');
   const snapTargets = [
-    { el: statementSection, threshold: 0.25 },
     { el: termSection, threshold: 0.35 },
     { el: benchSection, threshold: 0.25 }
   ];
@@ -1165,12 +1248,13 @@
     .map((s) => document.querySelector(s)).filter(Boolean);
   // The hero's second text slide lives INSIDE the pinned hero shell, so it has
   // no element boundary of its own — without a virtual stop a single flick
-  // carries straight through it. Stop at 75% of the hero's scroll distance,
-  // where the slide is fully faded in (sp 0.75: aIn = 1, drift = 0).
+  // carries straight through it. Stop late in the hero's scroll distance,
+  // after the slide is fully faded in but before its exit drift begins.
   const heroShellEl = document.querySelector('.hero-shell');
+  const heroStopProgress = 0.82;
   const heroStopTop = () =>
     heroShellEl.getBoundingClientRect().top + scrollY +
-    (heroShellEl.offsetHeight - innerHeight) * 0.75;
+    (heroShellEl.offsetHeight - innerHeight) * heroStopProgress;
   // The pinned scenes play their animation across the section's extra
   // height; a boundary at top + (height − viewport) is the exact point where
   // the animation has fully played — stop there too, so leaving the finished
@@ -1204,16 +1288,29 @@
   const autoplay = { active: false, from: 0, to: 0, t0: 0, dur: 0 };
   let pendingAutoplay = 0;
   function cancelAutoplay() { autoplay.active = false; pendingAutoplay = 0; }
-  function startAutoplay(from, to, now) {
+  function startAutoplay(from, to, now, msPerViewport = 2560) {
     const dist = clamp(to, 0, maxScroll()) - from;
     if (dist <= 4) return;
     autoplay.from = from;
     autoplay.to = from + dist;
     // ~2.56s per viewport of travel: a sticky range is ~0.7vh, so ≈1.8s end to
     // end (25% quicker than the first pass, which read as sluggish)
-    autoplay.dur = clamp((dist / innerHeight) * 2560, 960, 3360);
+    const minDur = msPerViewport < 2000 ? 720 : 960;
+    autoplay.dur = clamp((dist / innerHeight) * msPerViewport, minDur, 3360);
     autoplay.t0 = now;
     autoplay.active = true;
+  }
+  function playRemainingRange(to, now, msPerViewport) {
+    scrollDir = 1;
+    clearTimeout(snapTimer);
+    clearTimeout(gestureTimer);
+    inGesture = false;
+    if (!autoplay.active) {
+      cancelAutoplay();
+      smooth.target = smooth.current = scrollY;
+      smooth.active = false;
+      startAutoplay(scrollY, to, now, msPerViewport);
+    }
   }
   function startGesture() {
     inGesture = true;
@@ -1259,6 +1356,18 @@
       e.preventDefault();
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
       const dy = e.deltaY * unit;
+      // Bridge the hero's centered copy directly into the training-gap scene.
+      // This bypasses the statement's transparent first frame and uses a faster
+      // pace than the data showcases below it.
+      const statementEnd = statementSection.getBoundingClientRect().top + scrollY +
+        statementSection.offsetHeight - innerHeight;
+      const wheelTarget = (smooth.active ? smooth.target : scrollY) + dy;
+      const inHeroStatementBridge = Math.max(scrollY, wheelTarget) >= heroStopTop() - 2 &&
+        scrollY < statementEnd - 4;
+      if (dy > 0 && inHeroStatementBridge) {
+        playRemainingRange(statementEnd, e.timeStamp, 1650);
+        return;
+      }
       // Once a pinned scene has begun moving, any downward wheel input
       // plays its remaining range exactly like the matching nav link does.
       // Downward input during playback leaves it running; upward input falls
@@ -1273,16 +1382,7 @@
         }
       }
       if (dy > 0 && activeStickyEnd) {
-        scrollDir = 1;
-        clearTimeout(snapTimer);
-        clearTimeout(gestureTimer);
-        inGesture = false;
-        if (!autoplay.active) {
-          cancelAutoplay();
-          smooth.target = smooth.current = scrollY;
-          smooth.active = false;
-          startAutoplay(scrollY, activeStickyEnd, e.timeStamp);
-        }
+        playRemainingRange(activeStickyEnd, e.timeStamp);
         return;
       }
       // a wheel during nav-link playback is the user taking over: drop the
@@ -1432,7 +1532,11 @@
       // Training-gap statement: the same rise-and-fade entrance as the hero's
       // second copy slide, resolving to a fully visible centered resting pose.
       let p = stickyProgress(statementSection);
-      const statementIn = clamp((p - 0.08) / 0.62, 0, 1);
+      const statementRect = statementSection.getBoundingClientRect();
+      if (statementRect.bottom > -100 && statementRect.top < innerHeight + 100) {
+        drawTrainingField(now, p);
+      }
+      const statementIn = clamp(p / 0.68, 0, 1);
       const statementEase = 1 - Math.pow(1 - statementIn, 3);
       statementCopy.style.opacity = Math.min(1, statementIn * 1.5);
       statementCopy.style.transform = `translateY(${lerp(260, 0, statementEase)}px)`;
