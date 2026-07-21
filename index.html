@@ -1081,8 +1081,9 @@
   //     briskly after a fast gesture, gently after a slow one.
   // Touch, keyboard, and scrollbar scrolls stay native — an external scroll
   // just re-syncs the target. Disabled under reduced motion.
+  const termSection = document.getElementById('environments');
   const snapTargets = [
-    { el: document.getElementById('environments'), threshold: 0.35 },
+    { el: termSection, threshold: 0.35 },
     { el: document.getElementById('benchmark'), threshold: 0.25 }
   ];
   const gestureBounds = ['.statement', '#environments', '#benchmark', '#platform',
@@ -1183,6 +1184,28 @@
       if (e.ctrlKey) return;                                    // pinch-zoom
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;      // horizontal panes
       e.preventDefault();
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
+      const dy = e.deltaY * unit;
+      // Once the terminal's sticky movement has begun, any downward wheel input
+      // plays the remaining range exactly like its nav link does. Downward input
+      // during that playback leaves it running; upward input falls through and
+      // retains the normal user-takeover behavior below.
+      const termTop = termSection.getBoundingClientRect().top + scrollY;
+      const termEnd = termTop + termSection.offsetHeight - innerHeight;
+      const terminalIsMoving = scrollY >= termTop - 2 && scrollY < termEnd - 4;
+      if (dy > 0 && terminalIsMoving) {
+        scrollDir = 1;
+        clearTimeout(snapTimer);
+        clearTimeout(gestureTimer);
+        inGesture = false;
+        if (!autoplay.active) {
+          cancelAutoplay();
+          smooth.target = smooth.current = scrollY;
+          smooth.active = false;
+          startAutoplay(scrollY, termEnd, e.timeStamp);
+        }
+        return;
+      }
       // a wheel during nav-link playback is the user taking over: drop the
       // playback and let this event seed a normal gesture from where we are
       if (autoplay.active || pendingAutoplay) {
@@ -1190,8 +1213,6 @@
         smooth.target = smooth.current = scrollY;
         inGesture = false;
       }
-      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
-      const dy = e.deltaY * unit;
       if (!inGesture || e.timeStamp - lastWheelT > 300) startGesture();
       // trackpad momentum can keep a gesture "alive" (< 300ms between events)
       // long after the flick landed on its cap, so a fresh swipe would stay
@@ -1257,7 +1278,6 @@
   const benchCap = document.getElementById('bench-caption');
   const benchBars = document.querySelectorAll('.bench-row');
 
-  const termSection = document.getElementById('environments');
   const termPanel = document.getElementById('terminal');
   const termF1 = document.getElementById('term-frame-1');
   const termF2 = document.getElementById('term-frame-2');
