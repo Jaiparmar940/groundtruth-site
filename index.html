@@ -681,8 +681,9 @@
       <div class="hero-copy2">
         <p>
           AI is leaving the chat window and entering machines. Second Nature builds training
-          environments and evals where models must reason through physical state, causality,
-          tools, and consequences before they ever act in the real world.
+          environments and evals where agents pursue goals in simulated physical systems:
+          observing through sensors and instruments, choosing actions, and adapting to their
+          consequences under time, cost, and safety constraints.
         </p>
       </div>
       <div class="scroll-cue">Scroll to explore <span class="box">↓</span></div>
@@ -696,11 +697,12 @@
     <div class="statement-pin">
       <canvas class="statement-art" id="statement-art" aria-hidden="true"></canvas>
       <div class="wrap statement-copy" id="statement-copy">
-        <h2>The physical world is missing<br>from the training set.</h2>
+        <h2>"We know more than we can tell"<br>- Michael Polanyi</h2>
         <p>
-          Manuals capture how machines should work. The knowledge of how they actually fail lives
-          in the hands of people who build, operate, and repair them. We turn that tacit expertise
-          into interactive, physics-grounded tasks with outcomes models cannot talk their way around.
+          Written sources describe components and procedures but capture expert judgment poorly:
+          what to inspect, what an observation means, which action to take next, and whether it worked.
+          <strong>We turn that tacit physical judgment into interactive, physics-grounded tasks whose outcomes
+          create training signal without requiring an expert to articulate every decision rule.</strong>
         </p>
       </div>
     </div>
@@ -754,9 +756,10 @@
       <div class="term-caption">
         <h3>One environment. A general method.</h3>
         <p>
-          no-start-env is our first public proof: an agent gathers evidence, builds a causal
-          picture, takes action, and is graded by what the simulated system actually does.
-          That pattern extends from fault isolation to robot recovery, maintenance, and operation.
+          no-start-env is our first public proof: an agent receives a goal, observes an instrumented
+          physical system, chooses actions, adapts to their consequences, and is graded by the resulting
+          state. Vehicle fault diagnosis gives this first environment objective ground truth; the method
+          applies wherever agents must make decisions about physical systems.
         </p>
       </div>
     </div>
@@ -836,7 +839,7 @@
   <section id="platform">
     <div class="wrap">
       <div class="kicker reveal">The platform</div>
-      <h2 class="reveal" style="max-width: 20ch;">Training gyms and test rigs for physical intelligence.</h2>
+      <h2 class="reveal" style="max-width: 20ch;">Training environments and test rigs for physical reasoning.</h2>
       <div class="pillars">
         <div class="pillar reveal">
           <div class="index">01 / PHYSICS</div>
@@ -851,18 +854,20 @@
           <div class="index">02 / GRADING</div>
           <h3>Outcomes, not plausible text</h3>
           <p>
-            Graders reward correct causal understanding, disciplined action, and efficient
-            recovery against an expert baseline. The environment state decides whether an
-            intervention worked; confident explanations and brute-force guessing do not.
+            Graders reward correct causal understanding, disciplined action, and efficient goal
+            completion against an expert baseline. The environment state determines whether an
+            action worked; confident explanations and brute-force guessing do not.
           </p>
         </div>
         <div class="pillar reveal">
           <div class="index">03 / VERIFICATION</div>
           <h3>Expert verification is the moat</h3>
           <p>
-            Models can generate simulations they cannot warrant. Every scenario is played and
-            signed off by someone who understands the real system. In no-start-env, that review
-            caught four plausible physics bugs that had passed the automated suite.
+            Models can generate simulations they cannot warrant. Coding agents produce much of the
+            implementation scaffolding, scenario variants, and automated tests; human expertise is
+            concentrated on verifying system dynamics, tasks, and rewards. In no-start-env, that review
+            caught four physics errors that passed the automated suite, and each became an invariant
+            that checks later scenarios.
           </p>
         </div>
       </div>
@@ -876,9 +881,10 @@
         <div class="kicker reveal">Applications</div>
         <h2 class="reveal">From model capability to machine reliability.</h2>
         <p class="reveal">
-          Built for frontier labs training general agents, robotics teams testing deployment
-          readiness, and operators turning hard-won machine knowledge into repeatable practice.
-          We measure whether a model can observe, localize, decide, and recover under physical constraints.
+          Built for frontier labs training general agents, robotics teams evaluating deployment
+          readiness, and companies developing models for vehicles and industrial machines. We measure
+          whether an agent can infer system state, choose an action, observe its consequences, and adapt
+          under physical constraints.
         </p>
         <div class="cta-row reveal">
           <a class="btn btn-green" href="#contact">For AI labs →</a>
@@ -929,9 +935,9 @@
     <div class="wrap">
       <h2 class="reveal">Build the missing<br>training ground.</h2>
       <p class="reveal">
-        We work with AI labs, robotics teams, and industrial operators to turn real machine
-        behavior and hard-won domain knowledge into interactive training environments and
-        rigorous evals. If your models must reason before they act, we'd like to talk.
+        We build verified environment families for AI labs and robotics companies, turning real system
+        dynamics and expert judgment into training signal and rigorous evals. If your agents must observe
+        a physical system, act under constraints, and adapt to the consequences, we'd like to talk.
       </p>
       <div class="cta-row reveal">
         <a class="btn btn-green" href="mailto:founders@snlabs.dev">Build an environment</a>
@@ -948,9 +954,10 @@
       <div>
         <div class="kicker reveal">Who's behind this</div>
         <p class="founder-text reveal">
-          Built by Jaivir Parmar, whose work spans robotics, embedded systems, fabrication,
-          and ECU-level diagnosis. no-start-env begins in a domain he can personally verify;
-          every environment follows the same standard of hands-on domain sign-off before it ships.
+          Built by Jaivir Parmar, a mechanical engineer and computer scientist whose work spans robotics,
+          embedded systems, fabrication, and physical-system modeling. He built no-start-env in a domain
+          he can personally verify, establishing the causal modeling, grading, and invariant framework
+          Second Nature will carry across environment families.
         </p>
         <div class="founder-links reveal">
           <a href="https://github.com/Jaiparmar940" target="_blank" rel="noopener">GitHub</a>
