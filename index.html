@@ -93,7 +93,7 @@
   .btn-ghost-dark:hover { border-color: rgba(255, 255, 255, 0.6); }
 
   /* ================= hero: pinned card with two text slides ================= */
-  .hero-shell { height: 220vh; position: relative; }
+  .hero-shell { height: 220vh; position: relative; background: #060606; }
   .hero-pin {
     position: sticky;
     top: 0;
@@ -208,6 +208,14 @@
     line-height: 1.1;
     font-weight: 550;
     letter-spacing: -0.025em;
+  }
+  .statement-attribution {
+    display: inline-block;
+    margin-top: 0.25em;
+    font-size: 0.6em;
+    font-style: italic;
+    font-weight: 450;
+    letter-spacing: -0.01em;
   }
   .statement {
     height: 150vh;
@@ -697,7 +705,7 @@
     <div class="statement-pin">
       <canvas class="statement-art" id="statement-art" aria-hidden="true"></canvas>
       <div class="wrap statement-copy" id="statement-copy">
-        <h2>"We know more than we can tell"<br>- Michael Polanyi</h2>
+        <h2>"We know more than we can tell"<br><span class="statement-attribution">- Michael Polanyi</span></h2>
         <p>
           Written sources describe components and procedures but capture expert judgment poorly:
           what to inspect, what an observation means, which action to take next, and whether it worked.
@@ -1256,8 +1264,9 @@
   //  2. When input goes idle with a showcase partially entered, the target
   //     moves to the section top and the glide carries you in (forward-only),
   //     briskly after a fast gesture, gently after a slow one.
-  // Touch, keyboard, and scrollbar scrolls stay native — an external scroll
-  // just re-syncs the target. Disabled under reduced motion.
+  // Keyboard and scrollbar scrolls stay native. Touch stays native until a
+  // downward swipe enters a pinned animation, then the same forward-only
+  // completion used by wheel input takes over. Disabled under reduced motion.
   const statementSection = document.getElementById('training-gap');
   const termSection = document.getElementById('environments');
   const benchSection = document.getElementById('benchmark');
@@ -1466,9 +1475,62 @@
         if (play) pendingAutoplay = top + (el.offsetHeight - innerHeight);
       });
     });
-    // any real input hands control back to the user mid-playback
-    ['touchstart', 'keydown'].forEach((ev) =>
-      addEventListener(ev, cancelAutoplay, { passive: true }));
+    // Mobile touch has no wheel event, so detect the downward swipe directly.
+    // Keep ordinary touch scrolling native; only take over once the gesture has
+    // entered the hero copy or one of the pinned animation ranges. A new touch
+    // (including an upward one) still cancels playback and returns control.
+    let touchY = 0;
+    addEventListener('touchstart', (e) => {
+      cancelAutoplay();
+      touchY = e.touches[0] ? e.touches[0].clientY : 0;
+    }, { passive: true });
+    addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      const dy = touchY - touch.clientY;
+      touchY = touch.clientY;
+      if (dy <= 0) {
+        if (dy < -2) scrollDir = -1;
+        return;
+      }
+      scrollDir = 1;
+      if (autoplay.active) {
+        e.preventDefault();
+        return;
+      }
+
+      const projectedY = scrollY + dy;
+      const heroTop = heroShellEl.getBoundingClientRect().top + scrollY;
+      const heroRange = heroShellEl.offsetHeight - innerHeight;
+      const heroStop = heroStopTop();
+      const statementEnd = statementSection.getBoundingClientRect().top + scrollY +
+        statementSection.offsetHeight - innerHeight;
+
+      let touchTarget = 0;
+      let touchPace;
+      if (projectedY >= heroTop + heroRange * 0.35 && scrollY < heroStop - 4) {
+        touchTarget = heroStop;
+        touchPace = 1650;
+      } else if (projectedY >= heroStop - 2 && scrollY < statementEnd - 4) {
+        touchTarget = statementEnd;
+        touchPace = 1650;
+      } else {
+        for (const el of stickyEnds) {
+          const top = el.getBoundingClientRect().top + scrollY;
+          const end = top + el.offsetHeight - innerHeight;
+          if (projectedY >= top - 2 && scrollY < end - 4) {
+            touchTarget = end;
+            break;
+          }
+        }
+      }
+      if (touchTarget) {
+        e.preventDefault();
+        playRemainingRange(touchTarget, e.timeStamp, touchPace);
+      }
+    }, { passive: false });
+    addEventListener('touchend', () => queueSnap(180), { passive: true });
+    addEventListener('keydown', cancelAutoplay, { passive: true });
   }
 
   /* ---------- scroll-driven 3D stages ---------- */
