@@ -209,13 +209,25 @@
     letter-spacing: -0.025em;
   }
   .statement {
-    text-align: center;
-    padding: 20vh 0 16vh;
+    height: 170vh;
+    position: relative;
+  }
+  .statement-pin {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    overflow: clip;
     display: grid;
     place-items: center;
   }
-  .statement h2 { max-width: 26ch; margin: 0 auto; }
-  .statement p {
+  .statement-copy {
+    text-align: center;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .statement-copy h2 { max-width: 26ch; margin: 0 auto; }
+  .statement-copy p {
     margin: 24px auto 0;
     max-width: 52ch;
     font-size: 16.5px;
@@ -613,6 +625,9 @@
     .hero-shell { height: auto; }
     .hero-pin { position: static; height: 100vh; }
     .hero-copy2 { opacity: 1; align-items: flex-end; padding-bottom: 9vh; }
+    .statement { height: auto; }
+    .statement-pin { position: static; height: auto; padding: 20vh 0 16vh; }
+    .statement-copy { opacity: 1; transform: none; }
   }
 </style>
 </head>
@@ -659,14 +674,16 @@
 
 <div class="dark">
 
-  <div class="statement">
-    <div class="wrap">
-      <h2 class="reveal">The physical world is missing<br>from the training set.</h2>
-      <p class="reveal">
-        Manuals capture how machines should work. The knowledge of how they actually fail lives
-        in the hands of people who build, operate, and repair them. We turn that tacit expertise
-        into interactive, physics-grounded tasks with outcomes models cannot talk their way around.
-      </p>
+  <div class="statement" id="training-gap">
+    <div class="statement-pin">
+      <div class="wrap statement-copy" id="statement-copy">
+        <h2>The physical world is missing<br>from the training set.</h2>
+        <p>
+          Manuals capture how machines should work. The knowledge of how they actually fail lives
+          in the hands of people who build, operate, and repair them. We turn that tacit expertise
+          into interactive, physics-grounded tasks with outcomes models cannot talk their way around.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -1135,9 +1152,11 @@
   //     briskly after a fast gesture, gently after a slow one.
   // Touch, keyboard, and scrollbar scrolls stay native — an external scroll
   // just re-syncs the target. Disabled under reduced motion.
+  const statementSection = document.getElementById('training-gap');
   const termSection = document.getElementById('environments');
   const benchSection = document.getElementById('benchmark');
   const snapTargets = [
+    { el: statementSection, threshold: 0.25 },
     { el: termSection, threshold: 0.35 },
     { el: benchSection, threshold: 0.25 }
   ];
@@ -1152,11 +1171,11 @@
   const heroStopTop = () =>
     heroShellEl.getBoundingClientRect().top + scrollY +
     (heroShellEl.offsetHeight - innerHeight) * 0.75;
-  // The two sticky showcases play their animation across the section's extra
+  // The pinned scenes play their animation across the section's extra
   // height; a boundary at top + (height − viewport) is the exact point where
   // the animation has fully played — stop there too, so leaving the finished
   // demo/results takes its own gesture.
-  const stickyEnds = [termSection, benchSection].filter(Boolean);
+  const stickyEnds = [statementSection, termSection, benchSection].filter(Boolean);
   const boundaryTops = (y0) => {
     const tops = gestureBounds.map((el) => el.getBoundingClientRect().top + y0);
     tops.push(heroStopTop());
@@ -1240,7 +1259,7 @@
       e.preventDefault();
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
       const dy = e.deltaY * unit;
-      // Once either sticky showcase has begun moving, any downward wheel input
+      // Once a pinned scene has begun moving, any downward wheel input
       // plays its remaining range exactly like the matching nav link does.
       // Downward input during playback leaves it running; upward input falls
       // through and retains the normal user-takeover behavior below.
@@ -1331,6 +1350,7 @@
   }
 
   /* ---------- scroll-driven 3D stages ---------- */
+  const statementCopy = document.getElementById('statement-copy');
   const benchPanel = document.getElementById('bench-panel');
   const benchF1 = document.getElementById('bench-frame-1');
   const benchF2 = document.getElementById('bench-frame-2');
@@ -1409,11 +1429,19 @@
       heroCopy2.style.transform = `translateY(${lerp(260, 0, eIn) - drift * 56}px)`;
       heroCue.style.opacity = 1 - clamp(sp / 0.1, 0, 1);
 
+      // Training-gap statement: the same rise-and-fade entrance as the hero's
+      // second copy slide, resolving to a fully visible centered resting pose.
+      let p = stickyProgress(statementSection);
+      const statementIn = clamp((p - 0.08) / 0.62, 0, 1);
+      const statementEase = 1 - Math.pow(1 - statementIn, 3);
+      statementCopy.style.opacity = Math.min(1, statementIn * 1.5);
+      statementCopy.style.transform = `translateY(${lerp(260, 0, statementEase)}px)`;
+
       // Benchmark stage: settle from a deep tilt to nearly flat.
       // On phones, damp the 3D amplitude — full-size tilts overshoot the small
       // stages and ride panels over the captions below them.
       const mob = innerWidth < 640 ? 0.35 : 1;
-      let p = stickyProgress(benchSection);
+      p = stickyProgress(benchSection);
       let e = 1 - Math.pow(1 - p, 2);
       // The stage itself is centered by .showcase-sticky; finish the main
       // results window at translateY(0) so the completed pose shares that
