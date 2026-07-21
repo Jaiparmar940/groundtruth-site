@@ -1415,8 +1415,11 @@
       const mob = innerWidth < 640 ? 0.35 : 1;
       let p = stickyProgress(benchSection);
       let e = 1 - Math.pow(1 - p, 2);
+      // The stage itself is centered by .showcase-sticky; finish the main
+      // results window at translateY(0) so the completed pose shares that
+      // exact viewport center. The wireframes keep their depth/parallax offsets.
       benchPanel.style.transform =
-        `rotateY(${lerp(-22, -6, e) * mob}deg) rotateX(${lerp(10, 2, e) * mob}deg) translateY(${lerp(70, -10, e) * mob}px) translateZ(${lerp(-80, 0, e) * mob}px)`;
+        `rotateY(${lerp(-22, -6, e) * mob}deg) rotateX(${lerp(10, 2, e) * mob}deg) translateY(${lerp(70, 0, e) * mob}px) translateZ(${lerp(-80, 0, e) * mob}px)`;
       benchF1.style.transform =
         `rotateY(${lerp(-26, -9, e) * mob}deg) rotateX(${lerp(12, 3, e) * mob}deg) translateY(${lerp(100, 6, e) * mob}px) translateZ(${lerp(-160, -40, e) * mob}px)`;
       benchF2.style.transform =
