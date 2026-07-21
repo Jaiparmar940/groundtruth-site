@@ -88,6 +88,14 @@ Everything is in `index.html`:
   card — there is no light band between hero and dark region) floats into center, then
   drifts out as the card unpins straight into `.dark` (veil bottom blends to --bg so the
   seam is invisible). There is no announce banner above the nav (removed 2026-07-20).
+- **Nav-height gotcha (`--nav-h`)**: the nav is `position: sticky`, so it occupies flow
+  space *above* the pinned hero card — at scrollTop 0 the 100svh card hangs one nav-height
+  below the fold, and anything anchored to the card's bottom edge lands off screen at the
+  page's opening position. `--nav-h` (68px; 60px ≤640px) is the single source for that
+  height: it sets `.nav-inner`'s height and is added back into `.scroll-cue`'s offset
+  (`bottom: calc(28px + var(--nav-h))`), which is why "Scroll to explore" is visible on
+  load at every viewport size — before 2026-07-20 it sat below the fold on laptops and
+  phones. Use `--nav-h`, never a literal, for anything bottom-anchored inside the card.
 - **Scroll motion** is one rAF loop (`frame()`): `stickyProgress()` maps each tall section
   (`.showcase` 165vh, `.term-section` 170vh) to 0–1; panels/wireframes interpolate
   rotateY/rotateX/translate via `lerp`, benchmark bars fill from progress. Tilt constants
