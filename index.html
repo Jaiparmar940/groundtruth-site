@@ -1134,8 +1134,9 @@
     if (dist <= 4) return;
     autoplay.from = from;
     autoplay.to = from + dist;
-    // ~3.2s per viewport of travel: a sticky range is ~0.7vh, so ≈2.2s end to end
-    autoplay.dur = clamp((dist / innerHeight) * 3200, 1200, 4200);
+    // ~2.56s per viewport of travel: a sticky range is ~0.7vh, so ≈1.8s end to
+    // end (25% quicker than the first pass, which read as sluggish)
+    autoplay.dur = clamp((dist / innerHeight) * 2560, 960, 3360);
     autoplay.t0 = now;
     autoplay.active = true;
   }
@@ -1234,11 +1235,12 @@
         e.preventDefault();
         cancelAutoplay();
         const top = scrollY + el.getBoundingClientRect().top;
-        glideTo(top, 150);
+        const play = autoplayHrefs.includes(href);
+        // sections that go on to autoplay get a brisker approach: the arrival is
+        // a beat before the real motion, not the main event
+        glideTo(top, play ? 90 : 150);
         // queued, not started: frame() kicks it off once the glide has landed
-        if (autoplayHrefs.includes(href)) {
-          pendingAutoplay = top + (el.offsetHeight - innerHeight);
-        }
+        if (play) pendingAutoplay = top + (el.offsetHeight - innerHeight);
       });
     });
     // any real input hands control back to the user mid-playback
@@ -1278,11 +1280,16 @@
     now = now || 0;
     // smooth-scroll step first, so the stages below read the eased position
     if (!reduced && autoplay.active) {
-      // nav-link playback through a sticky section: ease-in-out over a fixed
-      // duration, keeping smooth.* in step so the wheel/scroll handlers see a
-      // position they wrote and don't fight it
+      // nav-link playback through a sticky section, keeping smooth.* in step so
+      // the wheel/scroll handlers see a position they wrote and don't fight it.
+      // Trapezoid velocity — short ramp, cruise, long settle — rather than a
+      // symmetric ease: a symmetric one is still near-motionless a fifth of the
+      // way in, which reads as the page having stalled at the section top.
       const k = clamp((now - autoplay.t0) / autoplay.dur, 0, 1);
-      const eK = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      const A = 0.15, D = 0.35, V = 1 / (1 - (A + D) / 2); // V = peak, so ∫ = 1
+      const eK = k < A ? V * k * k / (2 * A)
+        : k < 1 - D ? V * (k - A / 2)
+        : 1 - V * (1 - k) * (1 - k) / (2 * D);
       smooth.current = smooth.target = lerp(autoplay.from, autoplay.to, eK);
       scrollTo(0, smooth.current);
       if (k >= 1) autoplay.active = false;
@@ -1290,7 +1297,12 @@
       const dt = Math.min(64, now - lastFrameT) || 16;
       const k = 1 - Math.exp(-dt / smooth.tau);
       smooth.current += (smooth.target - smooth.current) * k;
-      if (Math.abs(smooth.target - smooth.current) < 0.4) {
+      const rest = Math.abs(smooth.target - smooth.current);
+      // An exponential approach spends its whole tail creeping the last few
+      // pixels, which read as a dead pause at the section top before playback.
+      // Hand off at 12px instead — the closing jump is imperceptible, and it
+      // cuts several hundred ms of nothing-happening.
+      if (rest < (pendingAutoplay ? 12 : 0.4)) {
         smooth.current = smooth.target;
         smooth.active = false;
         if (pendingAutoplay) {

@@ -121,10 +121,18 @@ Everything is in `index.html`:
   that is the stage's *first* frame, deepest tilt, nothing filled in. The click glides to
   the top as before and sets `pendingAutoplay` to the sticky end
   (`top + offsetHeight - innerHeight`, i.e. `stickyProgress` 1); `frame()` starts the
-  playback at the moment the glide converges. The playback is its own branch at the top of
-  `frame()` — ease-in-out over a fixed duration (`~3.2s per viewport of travel`, clamped
-  1.2–4.2s, so ≈2.2s for a real section) rather than the exponential glide, which would
-  crawl through the final stretch where the payoff is. It writes `smooth.current/target` in
+  playback as soon as the glide is close. The playback is its own branch at the top of
+  `frame()` — a fixed duration (`~2.56s per viewport of travel`, clamped 0.96–3.36s, so
+  ≈1.8s for a real section) rather than the exponential glide, which would crawl through
+  the final stretch where the payoff is. **Three separate things were tuned 2026-07-20
+  after the first pass felt laggy — if it needs retuning, they are all in play:** (1) the
+  approach glide uses τ 90 for autoplay hrefs vs 150 for other anchors; (2) the handoff
+  fires at 12px remaining, not 0.4px, because an exponential tail spends hundreds of ms
+  creeping the last pixels and that read as a dead pause (the 12px close-out jump is
+  imperceptible); (3) the playback easing is a trapezoid velocity profile (ramp `A`=0.15,
+  settle `D`=0.35, peak `V` normalized so the integral is 1) rather than a symmetric
+  ease-in-out, which was still only 8% along a fifth of the way in. It writes
+  `smooth.current/target` in
   step so the wheel and scroll handlers see a position they wrote. Any real input drops it
   (`cancelAutoplay`): a wheel (which then seeds a fresh gesture from the current spot),
   `touchstart`, `keydown`, or a scroll event deviating >1.5px. Other anchors are unchanged.
