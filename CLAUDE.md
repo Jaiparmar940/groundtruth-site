@@ -114,9 +114,15 @@ Everything is in `index.html`:
   margin to the screen edge.
 - **Terminal typing** (added 2026-07-19): `typeTerminal()` blanks the `.t-line` text nodes
   and retypes them char-by-char (agent lines 4 ms/char, env output 2 ms/char) with a
-  blinking `.t-caret`, triggered once by an IntersectionObserver at threshold 0.7 on
-  `#terminal`. Reduced motion shows all lines instantly. If the transcript copy changes,
-  no JS updates are needed — it types whatever is in the markup.
+  blinking `.t-caret`. The first line (the `# complaint:` prompt) is exempt: it carries
+  `.on` in the markup, is never blanked or retyped, and holds the parked caret so the
+  terminal reads as waiting. Retriggered 2026-07-20 from the IntersectionObserver
+  (threshold 0.7) to a SETTLE gate inside `frame()` — typing starts only once the
+  terminal stage's `stickyProgress` ≥ 0.92, i.e. after the panel has finished its tilt
+  and come to rest (0.92 not 1.0 because the ease is quadratic-out — the last 8% is
+  sub-pixel travel, and a literal 1.0 would strand the animation whenever a gesture
+  parks just short of the section end). Reduced motion shows all lines instantly. If the
+  transcript copy changes, no JS updates are needed — it types whatever is in the markup.
 - Stage scaffolding: `.stage` (perspective) > `.wireframe` frames + `.contours` SVG +
   `.bin` labels + content panel. Reuse these primitives for new sections.
 - Known local-dev quirk: the Claude Code browser pane fails to capture screenshots at
